@@ -39,7 +39,13 @@ async def run_bot():
     print("Bot is running...")
     await app.run_polling()
 
-# Ensure the bot runs correctly in Railway
+# Ensure compatibility with Railway
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(run_bot())
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    
+    loop.create_task(run_bot())
+    loop.run_forever()
