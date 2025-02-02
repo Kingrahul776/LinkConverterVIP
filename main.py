@@ -44,13 +44,13 @@ async def start(update: Update, context: CallbackContext) -> None:
         subscribers[str(user_id)] = {"username": user_name, "ref_code": args[0] if args else "direct"}
         save_subscribers(subscribers)
 
-    # ✅ Generate the Telegram Mini-App link
-    miniapp_url = f"https://t.me/{BOT_USERNAME}/{APP_NAME}?startapp={user_id}&mode=compact"
+    # ✅ Generate the Telegram Mini-App WebApp Redirect Link
+    miniapp_redirect_url = f"{RAILWAY_APP_URL}/redirect?user_id={user_id}"
 
-    # ✅ Send Mini-App link
+    # ✅ Send Mini-App WebApp Link
     await update.message.reply_text(
         f"🎉 Welcome! Click below to open the Mini-App:\n"
-        f"➡️ [Open Mini-App]({miniapp_url})",
+        f"➡️ [Open Mini-App]({miniapp_redirect_url})",
         parse_mode="Markdown"
     )
 
