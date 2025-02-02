@@ -6,10 +6,13 @@ import asyncio
 import requests
 import json
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
+from telegram.ext import Application, CommandHandler, CallbackContext
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-SUBSCRIBERS_FILE = "subscribers.json"  # Store clicked users
+RAILWAY_APP_URL = "https://web-production-8fdb0.up.railway.app"  # ✅ Your Railway domain
+CHANNEL_LINK = "https://t.me/+your_channel_invite_code"  # 🔹 Replace with your actual channel invite link
+SUBSCRIBERS_FILE = "subscribers.json"  # ✅ Stores user data
+ADMIN_ID = 6142725643  # ✅ Your Telegram ID
 
 # ✅ Load Subscribers
 def load_subscribers():
@@ -24,11 +27,11 @@ def save_subscribers(subscribers):
     with open(SUBSCRIBERS_FILE, "w") as f:
         json.dump(subscribers, f)
 
-# ✅ Function to Generate a Random Code
+# ✅ Generate a Random Tracking Code
 def generate_random_code(length=6):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
-# ✅ Handle "/start xyz123" - When Users Click the Link
+# ✅ Handle "/start xyz123" - When Users Click the Bot Link
 async def start(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id
     user_name = update.message.from_user.username
@@ -36,13 +39,15 @@ async def start(update: Update, context: CallbackContext) -> None:
 
     subscribers = load_subscribers()
 
-    # ✅ If user is not already stored, add them
+    # ✅ Store user if not already added
     if str(user_id) not in subscribers:
         subscribers[str(user_id)] = {"username": user_name, "ref_code": args[0] if args else "direct"}
         save_subscribers(subscribers)
 
+    # ✅ Redirect the user to the Telegram channel
     await update.message.reply_text(
-        "🎉 Welcome! You have been added to the broadcast list."
+        f"🎉 Welcome! You have been added to the broadcast list.\n"
+        f"➡️ Click here to join the channel: {CHANNEL_LINK}"
     )
 
 # ✅ Generate Tracking Link
@@ -53,10 +58,10 @@ async def get_tracking_link(update: Update, context: CallbackContext) -> None:
     
     await update.message.reply_text(f"✅ Here is your tracking link: {tracking_link}")
 
-# ✅ Broadcast Message to Collected Users
+# ✅ Broadcast Message to Collected Users (Only Admin)
 async def broadcast(update: Update, context: CallbackContext) -> None:
-    admin_id = update.message.from_user.id
-    if admin_id != 6142725643:  # 🔹 Replace with your Telegram ID
+    user_id = update.message.from_user.id
+    if user_id != ADMIN_ID:
         await update.message.reply_text("🚫 You are not authorized to use this command.")
         return
 
