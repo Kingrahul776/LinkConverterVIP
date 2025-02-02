@@ -4,65 +4,86 @@ import random
 import string
 import asyncio
 import requests
+import json
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-RAILWAY_APP_URL = "https://web-production-8fdb0.up.railway.app"  # ✅ Temporary Railway domain
+SUBSCRIBERS_FILE = "subscribers.json"  # Store clicked users
 
-# Function to generate a random short code
+# ✅ Load Subscribers
+def load_subscribers():
+    try:
+        with open(SUBSCRIBERS_FILE, "r") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+# ✅ Save Subscribers
+def save_subscribers(subscribers):
+    with open(SUBSCRIBERS_FILE, "w") as f:
+        json.dump(subscribers, f)
+
+# ✅ Function to Generate a Random Code
 def generate_random_code(length=6):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
-# Function to store and get a random short link
-def miniapp_link(invite_link: str) -> str:
-    match = re.search(r"https://t\.me/\+([\w-]+)", invite_link)
-    if match:
-        invite_code = match.group(1)
-        short_code = generate_random_code()
-
-        print(f"[DEBUG] Generated short code: {short_code} for invite: {invite_code}")
-
-        # Store the short link in the redirect server
-        SHORTENER_API = f"{RAILWAY_APP_URL}/store"
-        try:
-            response = requests.post(SHORTENER_API, json={"code": short_code, "target": f"https://t.me/+{invite_code}"})
-            response_json = response.json()
-
-            print(f"[DEBUG] Response from shortener: {response_json}")
-
-            if response.status_code == 200:
-                return f"{RAILWAY_APP_URL}/{short_code}"  # ✅ Temporary Railway domain
-            else:
-                return f"Error: Received status {response.status_code} from the shortener."
-
-        except requests.exceptions.RequestException as e:
-            print(f"[ERROR] Failed to connect to shortener: {e}")
-            return "Error: Could not generate short link."
-
-    else:
-        return "Invalid invite link. Please send a valid Telegram invite link."
-
-# Start command
+# ✅ Handle "/start xyz123" - When Users Click the Link
 async def start(update: Update, context: CallbackContext) -> None:
-    await update.message.reply_text("Send me a Telegram channel invite link, and I'll convert it into a random short link.")
+    user_id = update.message.from_user.id
+    user_name = update.message.from_user.username
+    args = context.args  # Get the tracking code from the link
 
-# Handle messages with links
-async def convert_link(update: Update, context: CallbackContext) -> None:
-    invite_link = update.message.text.strip()
-    if "t.me/+" in invite_link:
-        miniapp_url = miniapp_link(invite_link)
-        print(f"[DEBUG] Sending Mini-App link: {miniapp_url}")
-        await update.message.reply_text(f"Here’s your Mini-App link: {miniapp_url}")
-    else:
-        await update.message.reply_text("Invalid link. Please send a valid Telegram invite link.")
+    subscribers = load_subscribers()
 
-# Main function
+    # ✅ If user is not already stored, add them
+    if str(user_id) not in subscribers:
+        subscribers[str(user_id)] = {"username": user_name, "ref_code": args[0] if args else "direct"}
+        save_subscribers(subscribers)
+
+    await update.message.reply_text(
+        "🎉 Welcome! You have been added to the broadcast list."
+    )
+
+# ✅ Generate Tracking Link
+async def get_tracking_link(update: Update, context: CallbackContext) -> None:
+    tracking_code = generate_random_code()
+    bot_username = context.bot.username
+    tracking_link = f"https://t.me/{bot_username}?start={tracking_code}"
+    
+    await update.message.reply_text(f"✅ Here is your tracking link: {tracking_link}")
+
+# ✅ Broadcast Message to Collected Users
+async def broadcast(update: Update, context: CallbackContext) -> None:
+    admin_id = update.message.from_user.id
+    if admin_id != 6142725643:  # 🔹 Replace with your Telegram ID
+        await update.message.reply_text("🚫 You are not authorized to use this command.")
+        return
+
+    message = " ".join(context.args)
+    if not message:
+        await update.message.reply_text("Usage: /broadcast <message>")
+        return
+
+    subscribers = load_subscribers()
+    count = 0
+
+    for user_id in subscribers:
+        try:
+            await context.bot.send_message(chat_id=user_id, text=message)
+            count += 1
+        except Exception as e:
+            print(f"[ERROR] Failed to send message to {user_id}: {e}")
+
+    await update.message.reply_text(f"✅ Broadcast sent to {count} users.")
+
+# ✅ Main Function
 async def run_bot():
     app = Application.builder().token(BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, convert_link))
+    app.add_handler(CommandHandler("getlink", get_tracking_link))
+    app.add_handler(CommandHandler("broadcast", broadcast))
 
     print("Bot is running...")
     await app.initialize()
@@ -72,6 +93,6 @@ async def run_bot():
     while True:
         await asyncio.sleep(100)
 
-# Run bot on Railway
+# ✅ Run Bot
 if __name__ == "__main__":
-    asyncio.run(run_bot())  # ✅ Works properly now
+    asyncio.run(run_bot())
