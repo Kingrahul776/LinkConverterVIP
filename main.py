@@ -8,8 +8,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackContext
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-BOT_USERNAME = "vipsignals221bot"  # 🔹 Replace with your actual bot username (without @)
-APP_NAME = "VIP"  # 🔹 The name of your Telegram Mini-App
+BOT_USERNAME = "vipsignals221bot"  # 🔹 Replace with your actual bot username
 RAILWAY_APP_URL = "https://web-production-8fdb0.up.railway.app"  # ✅ Your Mini-App backend
 SUBSCRIBERS_FILE = "subscribers.json"  # ✅ Store user data
 ADMIN_ID = 6142725643  # ✅ Your Telegram ID
@@ -46,7 +45,7 @@ async def start(update: Update, context: CallbackContext) -> None:
 
     # ✅ Generate a Mini-App link that auto-opens inside Telegram
     miniapp_code = generate_random_code()
-    miniapp_url = f"https://t.me/{BOT_USERNAME}/{APP_NAME}?startapp={miniapp_code}&mode=compact"
+    miniapp_url = f"https://t.me/{BOT_USERNAME}/MiniApp?startapp={miniapp_code}&mode=compact"
 
     # ✅ Send Mini-App link
     await update.message.reply_text(
