@@ -2,13 +2,13 @@ import os
 import re
 import random
 import string
-import asyncio  # ✅ Add this line
+import asyncio
 import requests
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-SHORTENER_API = "https://short.yourdomain.com/store"  # Replace with your shortener API
+SHORTENER_API = "https://www.kingcryptocalls.com/store"  # Your domain for short links
 
 # Function to generate a random short code
 def generate_random_code(length=6):
@@ -25,7 +25,7 @@ def miniapp_link(invite_link: str) -> str:
         response = requests.post(SHORTENER_API, json={"code": short_code, "target": f"https://t.me/+{invite_code}"})
 
         if response.status_code == 200:
-            return f"https://short.yourdomain.com/{short_code}"
+            return f"https://www.kingcryptocalls.com/{short_code}"
         else:
             return "Error generating short link."
 
