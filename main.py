@@ -1,21 +1,14 @@
 import os
-import random
-import string
-import asyncio
 import requests
+import asyncio
 from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackContext
 
 BOT1_TOKEN = os.getenv("BOT1_TOKEN")  # ✅ Token for Bot 1
-BOT2_USERNAME = "vipsignals221bot"  # 🔹 Replace with your Bot 2 username
-RAILWAY_APP_URL = "https://web-production-8fdb0.up.railway.app"  # ✅ Your backend URL
+RAILWAY_APP_URL = "https://web-production-8fdb0.up.railway.app"  # ✅ Backend URL
 ADMIN_ID = 6142725643  # ✅ Your Telegram ID
 
-# ✅ Generate a random short code
-def generate_short_code(length=8):
-    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
-
-# ✅ Handle "/generate <private_link>" to create a short link
+# ✅ Handle "/generate <private_link>" to create an encrypted short link
 async def generate_link(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id
 
@@ -28,13 +21,13 @@ async def generate_link(update: Update, context: CallbackContext) -> None:
         return
 
     private_link = context.args[0]
-    short_code = generate_short_code()
-    short_url = f"https://t.me/{BOT2_USERNAME}?start={short_code}"
+    response = requests.post(f"{RAILWAY_APP_URL}/store_link", json={"private_link": private_link})
+    result = response.json()
 
-    # ✅ Store the mapping in the backend
-    requests.post(f"{RAILWAY_APP_URL}/store_link", json={"short_code": short_code, "private_link": private_link})
-
-    await update.message.reply_text(f"✅ Here is your short link:\n{short_url}")
+    if result["success"]:
+        await update.message.reply_text(f"✅ Here is your encrypted short link:\n{result['short_link']}")
+    else:
+        await update.message.reply_text("❌ Failed to generate short link.")
 
 # ✅ Main Function
 async def run_bot():
