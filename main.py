@@ -21,13 +21,23 @@ def miniapp_link(invite_link: str) -> str:
         invite_code = match.group(1)
         short_code = generate_random_code()
 
-        # Store the short link in the redirect server
-        response = requests.post(SHORTENER_API, json={"code": short_code, "target": f"https://t.me/+{invite_code}"})
+        print(f"[DEBUG] Generated short code: {short_code} for invite: {invite_code}")
 
-        if response.status_code == 200:
-            return f"https://www.kingcryptocalls.com/{short_code}"
-        else:
-            return "Error generating short link."
+        # Store the short link in the redirect server
+        try:
+            response = requests.post(SHORTENER_API, json={"code": short_code, "target": f"https://t.me/+{invite_code}"})
+            response_json = response.json()
+            
+            print(f"[DEBUG] Response from shortener: {response_json}")
+
+            if response.status_code == 200:
+                return f"https://www.kingcryptocalls.com/{short_code}"
+            else:
+                return f"Error: Received status {response.status_code} from the shortener."
+
+        except requests.exceptions.RequestException as e:
+            print(f"[ERROR] Failed to connect to shortener: {e}")
+            return "Error: Could not generate short link."
 
     else:
         return "Invalid invite link. Please send a valid Telegram channel invite link."
@@ -41,6 +51,7 @@ async def convert_link(update: Update, context: CallbackContext) -> None:
     invite_link = update.message.text.strip()
     if "t.me/+" in invite_link:
         miniapp_url = miniapp_link(invite_link)
+        print(f"[DEBUG] Sending Mini-App link: {miniapp_url}")
         await update.message.reply_text(f"Here’s your Mini-App link: {miniapp_url}")
     else:
         await update.message.reply_text("Invalid link. Please send a valid Telegram invite link.")
