@@ -9,10 +9,11 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 # Function to convert a Telegram invite link to a mini-app version
 def miniapp_link(invite_link: str) -> str:
-    match = re.search(r"https://t.me/\+([\w-]+)", invite_link)
+    # Extract the invite code from the link
+    match = re.search(r"https://t\.me/\+([\w-]+)", invite_link)
     if match:
         invite_code = match.group(1)
-        return f"https://t.me/{invite_code}?start="
+        return f"https://t.me/+{invite_code}"
     else:
         return "Invalid invite link. Please send a valid Telegram channel invite link."
 
@@ -29,7 +30,7 @@ async def convert_link(update: Update, context: CallbackContext) -> None:
     else:
         await update.message.reply_text("Invalid link. Please send a valid Telegram invite link.")
 
-# Main function
+# Main function to run the bot
 async def run_bot():
     app = Application.builder().token(BOT_TOKEN).build()
 
@@ -40,8 +41,8 @@ async def run_bot():
     await app.initialize()
     await app.start()
     await app.updater.start_polling()
-    
-    # Keep running indefinitely
+
+    # Keep the bot running indefinitely
     while True:
         await asyncio.sleep(100)
 
