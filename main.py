@@ -30,7 +30,7 @@ async def convert_link(update: Update, context: CallbackContext) -> None:
         await update.message.reply_text("Invalid link. Please send a valid Telegram invite link.")
 
 # Main function
-async def main():
+async def run_bot():
     app = Application.builder().token(BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
@@ -39,5 +39,7 @@ async def main():
     print("Bot is running...")
     await app.run_polling()
 
+# Ensure the bot runs correctly in Railway
 if __name__ == "__main__":
-    asyncio.run(main())
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run_bot())
