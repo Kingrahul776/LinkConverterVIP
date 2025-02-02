@@ -1,25 +1,39 @@
 import os
 import re
-import asyncio
+import random
+import string
+import requests
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 
-# Get bot token from environment variables
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-DOMAIN = "www.yourdomain.com"  # Replace with your actual domain
+SHORTENER_API = "https://short.yourdomain.com/store"  # Replace with your shortener API
 
-# Function to convert a Telegram invite link to a mini-app version
+# Function to generate a random short code
+def generate_random_code(length=6):
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+
+# Function to store and get a random short link
 def miniapp_link(invite_link: str) -> str:
     match = re.search(r"https://t\.me/\+([\w-]+)", invite_link)
     if match:
         invite_code = match.group(1)
-        return f"https://{DOMAIN}/redirect?code={invite_code}"  # Redirect to your web app
+        short_code = generate_random_code()
+
+        # Store the short link in the redirect server
+        response = requests.post(SHORTENER_API, json={"code": short_code, "target": f"https://t.me/+{invite_code}"})
+
+        if response.status_code == 200:
+            return f"https://short.yourdomain.com/{short_code}"
+        else:
+            return "Error generating short link."
+
     else:
         return "Invalid invite link. Please send a valid Telegram channel invite link."
 
 # Start command
 async def start(update: Update, context: CallbackContext) -> None:
-    await update.message.reply_text("Send me a Telegram channel invite link, and I'll convert it into a mini-app version.")
+    await update.message.reply_text("Send me a Telegram channel invite link, and I'll convert it into a random short link.")
 
 # Handle messages with links
 async def convert_link(update: Update, context: CallbackContext) -> None:
@@ -30,7 +44,7 @@ async def convert_link(update: Update, context: CallbackContext) -> None:
     else:
         await update.message.reply_text("Invalid link. Please send a valid Telegram invite link.")
 
-# Main function to run the bot
+# Main function
 async def run_bot():
     app = Application.builder().token(BOT_TOKEN).build()
 
@@ -42,10 +56,9 @@ async def run_bot():
     await app.start()
     await app.updater.start_polling()
 
-    # Keep the bot running indefinitely
     while True:
         await asyncio.sleep(100)
 
-# Ensure compatibility with Railway
+# Run bot on Railway
 if __name__ == "__main__":
     asyncio.run(run_bot())
