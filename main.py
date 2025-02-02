@@ -37,15 +37,14 @@ async def run_bot():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, convert_link))
 
     print("Bot is running...")
-    await app.run_polling()
+    await app.initialize()
+    await app.start()
+    await app.updater.start_polling()
+    
+    # Keep running indefinitely
+    while True:
+        await asyncio.sleep(100)
 
 # Ensure compatibility with Railway
 if __name__ == "__main__":
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-    
-    loop.create_task(run_bot())
-    loop.run_forever()
+    asyncio.run(run_bot())
