@@ -2,6 +2,7 @@ import os
 import re
 import random
 import string
+import asyncio  # ✅ Add this line
 import requests
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
@@ -61,4 +62,4 @@ async def run_bot():
 
 # Run bot on Railway
 if __name__ == "__main__":
-    asyncio.run(run_bot())
+    asyncio.run(run_bot())  # ✅ Works properly now
