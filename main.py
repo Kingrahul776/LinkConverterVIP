@@ -8,7 +8,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackContext
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-BOT_USERNAME = "linkconvertvipbot"  # 🔹 Replace with your actual bot username
+BOT_USERNAME = "vipsignals221bot"  # 🔹 Replace with your actual bot username
 APP_NAME = "VIP"  # 🔹 Your Telegram Mini-App Name
 SUBSCRIBERS_FILE = "subscribers.json"  # ✅ Store user data
 ADMIN_ID = 6142725643  # ✅ Your Telegram ID
