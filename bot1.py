@@ -4,7 +4,11 @@ import asyncio
 from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackContext
 
-BOT1_TOKEN = os.getenv("BOT1_TOKEN")  # ✅ Token for Bot 1
+# ✅ Load token from environment variable
+BOT1_TOKEN = os.getenv("BOT1_TOKEN")
+if not BOT1_TOKEN:
+    raise ValueError("🚨 ERROR: BOT1_TOKEN is missing! Set it in Railway.")
+
 RAILWAY_APP_URL = "https://web-production-8fdb0.up.railway.app"  # ✅ Backend URL
 ADMIN_ID = 6142725643  # ✅ Your Telegram ID
 
@@ -34,7 +38,7 @@ async def run_bot():
     app = Application.builder().token(BOT1_TOKEN).build()
     app.add_handler(CommandHandler("generate", generate_link))
 
-    print("Bot 1 is running...")
+    print("🚀 Bot 1 is running...")
     await app.initialize()
     await app.start()
     await app.updater.start_polling()
