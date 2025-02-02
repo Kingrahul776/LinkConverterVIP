@@ -9,8 +9,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackContext
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-RAILWAY_APP_URL = "https://web-production-8fdb0.up.railway.app"  # ✅ Your Railway domain
-CHANNEL_LINK = "https://t.me/+foDsQEgRiEU3N2E1"  # 🔹 Replace with your actual channel invite link
+RAILWAY_APP_URL = "https://web-production-8fdb0.up.railway.app"  # ✅ Your Mini-App on Railway
 SUBSCRIBERS_FILE = "subscribers.json"  # ✅ Stores user data
 ADMIN_ID = 6142725643  # ✅ Your Telegram ID
 
@@ -44,10 +43,14 @@ async def start(update: Update, context: CallbackContext) -> None:
         subscribers[str(user_id)] = {"username": user_name, "ref_code": args[0] if args else "direct"}
         save_subscribers(subscribers)
 
-    # ✅ Redirect the user to the Telegram channel
+    # ✅ Generate a mini-app redirection link
+    miniapp_redirect_url = f"{RAILWAY_APP_URL}/redirect?user_id={user_id}"
+
+    # ✅ Send mini-app link for instant redirection
     await update.message.reply_text(
-        f"🎉 Welcome! You have been added to the broadcast list.\n"
-        f"➡️ Click here to join the channel: {CHANNEL_LINK}"
+        f"🎉 Welcome! Redirecting you to the channel...\n"
+        f"➡️ [Click here]({miniapp_redirect_url}) to continue.",
+        parse_mode="Markdown"
     )
 
 # ✅ Generate Tracking Link
