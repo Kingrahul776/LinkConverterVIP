@@ -43,14 +43,13 @@ async def start(update: Update, context: CallbackContext) -> None:
         subscribers[str(user_id)] = {"username": user_name, "ref_code": args[0] if args else "direct"}
         save_subscribers(subscribers)
 
-    # ✅ Generate a Mini-App link that auto-opens inside Telegram
-    miniapp_code = generate_random_code()
-    miniapp_url = f"https://t.me/{BOT_USERNAME}/MiniApp?startapp={miniapp_code}&mode=compact"
+    # ✅ Generate a WebApp Mini-App Redirect Link
+    miniapp_redirect_url = f"{RAILWAY_APP_URL}/redirect?user_id={user_id}"
 
-    # ✅ Send Mini-App link
+    # ✅ Send Mini-App WebApp Link
     await update.message.reply_text(
         f"🎉 Welcome! Click below to continue:\n"
-        f"➡️ [Open Mini-App]({miniapp_url})",
+        f"➡️ [Open Mini-App]({miniapp_redirect_url})",
         parse_mode="Markdown"
     )
 
