@@ -10,7 +10,7 @@ from telegram.ext import Application, CommandHandler, CallbackContext
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 RAILWAY_APP_URL = "https://web-production-8fdb0.up.railway.app"  # ✅ Your Railway domain
-CHANNEL_LINK = "https://t.me/+your_channel_invite_code"  # 🔹 Replace with your actual channel invite link
+CHANNEL_LINK = "https://t.me/+foDsQEgRiEU3N2E1"  # 🔹 Replace with your actual channel invite link
 SUBSCRIBERS_FILE = "subscribers.json"  # ✅ Stores user data
 ADMIN_ID = 6142725643  # ✅ Your Telegram ID
 
