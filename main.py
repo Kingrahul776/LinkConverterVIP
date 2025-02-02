@@ -1,5 +1,4 @@
 import os
-import re
 import random
 import string
 import asyncio
@@ -9,8 +8,10 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackContext
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-RAILWAY_APP_URL = "https://web-production-8fdb0.up.railway.app"  # ✅ Your Mini-App on Railway
-SUBSCRIBERS_FILE = "subscribers.json"  # ✅ Stores user data
+BOT_USERNAME = "vipsignals221bot"  # 🔹 Replace with your actual bot username (without @)
+APP_NAME = "VIP"  # 🔹 The name of your Telegram Mini-App
+RAILWAY_APP_URL = "https://web-production-8fdb0.up.railway.app"  # ✅ Your Mini-App backend
+SUBSCRIBERS_FILE = "subscribers.json"  # ✅ Store user data
 ADMIN_ID = 6142725643  # ✅ Your Telegram ID
 
 # ✅ Load Subscribers
@@ -27,7 +28,7 @@ def save_subscribers(subscribers):
         json.dump(subscribers, f)
 
 # ✅ Generate a Random Tracking Code
-def generate_random_code(length=6):
+def generate_random_code(length=10):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
 # ✅ Handle "/start xyz123" - When Users Click the Bot Link
@@ -43,17 +44,18 @@ async def start(update: Update, context: CallbackContext) -> None:
         subscribers[str(user_id)] = {"username": user_name, "ref_code": args[0] if args else "direct"}
         save_subscribers(subscribers)
 
-    # ✅ Generate a mini-app redirection link
-    miniapp_redirect_url = f"{RAILWAY_APP_URL}/redirect?user_id={user_id}"
+    # ✅ Generate a Mini-App link that auto-opens inside Telegram
+    miniapp_code = generate_random_code()
+    miniapp_url = f"https://t.me/{BOT_USERNAME}/{APP_NAME}?startapp={miniapp_code}&mode=compact"
 
-    # ✅ Send mini-app link for instant redirection
+    # ✅ Send Mini-App link
     await update.message.reply_text(
-        f"🎉 Welcome! Redirecting you to the channel...\n"
-        f"➡️ [Click here]({miniapp_redirect_url}) to continue.",
+        f"🎉 Welcome! Click below to continue:\n"
+        f"➡️ [Open Mini-App]({miniapp_url})",
         parse_mode="Markdown"
     )
 
-# ✅ Generate Tracking Link
+# ✅ Generate Tracking Link for Users
 async def get_tracking_link(update: Update, context: CallbackContext) -> None:
     tracking_code = generate_random_code()
     bot_username = context.bot.username
