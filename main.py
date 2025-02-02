@@ -6,14 +6,14 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 
 # Get bot token from environment variables
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+DOMAIN = "www.yourdomain.com"  # Replace with your actual domain
 
 # Function to convert a Telegram invite link to a mini-app version
 def miniapp_link(invite_link: str) -> str:
-    # Extract the invite code from the link
     match = re.search(r"https://t\.me/\+([\w-]+)", invite_link)
     if match:
         invite_code = match.group(1)
-        return f"https://t.me/+{invite_code}"
+        return f"https://{DOMAIN}/redirect?code={invite_code}"  # Redirect to your web app
     else:
         return "Invalid invite link. Please send a valid Telegram channel invite link."
 
