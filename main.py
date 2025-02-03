@@ -68,10 +68,6 @@ async def run_bot():
 if __name__ == "__main__":
     logger.info("🔄 Initializing bot...")
 
-    try:
-        asyncio.get_running_loop()
-        logger.warning("⚠️ Event loop already running. Starting bot using `asyncio.create_task()`")
-        asyncio.create_task(run_bot())  # ✅ Non-blocking execution
-    except RuntimeError:
-        logger.info("✅ No running event loop detected. Running bot normally.")
-        asyncio.run(run_bot())  # ✅ Standard execution
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(run_bot())
