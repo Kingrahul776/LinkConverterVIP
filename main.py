@@ -90,4 +90,11 @@ async def run_bot():
 
 if __name__ == "__main__":
     import asyncio
-    asyncio.run(run_bot())
+
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+
+    loop.run_until_complete(run_bot())
