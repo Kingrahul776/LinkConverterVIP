@@ -60,14 +60,16 @@ async def handle_message(update: Update, context: CallbackContext):
 app.add_handler(CommandHandler("start", start))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-# ✅ Fix for Railway Event Loop Issues
-async def run_bot():
-    logger.info("🚀 Bot 1 is running...")
-    await app.run_polling()
-
+# ✅ Corrected Bot Start for Railway
 if __name__ == "__main__":
-    logger.info("🔄 Initializing bot...")
+    logger.info("🚀 Bot 1 is starting...")
 
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(run_bot())
+    # 🌍 FIX for Railway Event Loop Error
+    try:
+        import uvloop
+        uvloop.install()  # ✅ Use faster event loop (fixes errors in Railway)
+    except ImportError:
+        logger.warning("⚠️ uvloop not installed, using default event loop.")
+
+    # ✅ Start bot without event loop conflicts
+    app.run_polling()
