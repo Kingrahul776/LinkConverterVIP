@@ -1,16 +1,17 @@
 import os
+import asyncio
 import requests
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 
-# ✅ Directly Hardcoded Token (Use this only if environment variables don't work)
+# ✅ Hardcoded Telegram Bot Token (Replace with your actual token)
 BOT1_TOKEN = "7563489228:AAFbHt27pZxUZVa3e3il0G7YypthgnREWkg"
 
-# ✅ Flask API URL
+# ✅ API Endpoint (Change if needed)
 API_BASE_URL = "https://kingcryptocalls.com"
 
-# ✅ List of Admins (Your Telegram ID)
-ADMINS = ["6142725643"]  # Add your Telegram user ID
+# ✅ Admin Telegram User ID
+ADMINS = ["6142725643"]  # Add more if needed
 
 # ✅ Initialize the Bot
 app = Application.builder().token(BOT1_TOKEN).build()
@@ -68,7 +69,7 @@ async def check_subscription(update: Update, context: CallbackContext):
     else:
         await update.message.reply_text("❌ You do not have an active subscription.")
 
-# ✅ Command (Admin Only): List All Subscribers
+# ✅ Command (Admin Only): List All Subscribers (Future Feature)
 async def list_subscriptions(update: Update, context: CallbackContext):
     if str(update.message.from_user.id) not in ADMINS:
         await update.message.reply_text("❌ You are not authorized to use this command.")
@@ -83,18 +84,21 @@ app.add_handler(CommandHandler("subscribe", subscribe))
 app.add_handler(CommandHandler("checksub", check_subscription))
 app.add_handler(CommandHandler("listsubs", list_subscriptions))
 
-# ✅ Start the Bot
+# ✅ Start the Bot (Fix for Asyncio RuntimeError)
 async def run_bot():
-    print("🚀 Bot 1 is running...")
+    print("🚀 Bot 1 is starting...")
     await app.run_polling()
 
 if __name__ == "__main__":
-    import asyncio
-
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
-    loop.run_until_complete(run_bot())
+    try:
+        loop.run_until_complete(run_bot())
+    except RuntimeError:
+        print("⚠️ Event loop already running. Using alternative method.")
+        asyncio.ensure_future(run_bot())
+        loop.run_forever()
