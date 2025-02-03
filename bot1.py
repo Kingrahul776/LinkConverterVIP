@@ -1,50 +1,93 @@
 import os
 import requests
-import asyncio
 from telegram import Update
-from telegram.ext import Application, CommandHandler, CallbackContext
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 
-# ✅ Load token from environment variable
+# ✅ Bot Token (Set in Railway Environment Variables)
 BOT1_TOKEN = os.getenv("BOT1_TOKEN")
-if not BOT1_TOKEN:
-    raise ValueError("🚨 ERROR: BOT1_TOKEN is missing! Set it in Railway.")
 
-RAILWAY_APP_URL = "https://web-production-8fdb0.up.railway.app"  # ✅ Backend URL
-ADMIN_ID = 6142725643  # ✅ Your Telegram ID
+# ✅ Flask API URL (Your Deployed API)
+API_BASE_URL = "https://kingcryptocalls.com"
 
-# ✅ Handle "/generate <private_link>" to create an encrypted short link
-async def generate_link(update: Update, context: CallbackContext) -> None:
-    user_id = update.message.from_user.id
+# ✅ List of Admins (Your Telegram ID)
+ADMINS = ["6142725643"]  # Add your Telegram user ID
 
-    if user_id != ADMIN_ID:
-        await update.message.reply_text("🚫 You are not authorized to use this command.")
-        return
+# ✅ Initialize the Bot
+app = Application.builder().token(BOT1_TOKEN).build()
 
+# ✅ Command: Start
+async def start(update: Update, context: CallbackContext):
+    await update.message.reply_text("👋 Welcome! Use /generate <private_link> to create an encrypted invite link.")
+
+# ✅ Command: Generate Encrypted Link
+async def generate(update: Update, context: CallbackContext):
     if not context.args:
-        await update.message.reply_text("Usage: /generate <private_invite_link>")
+        await update.message.reply_text("⚠️ Usage: /generate <private_link>")
+        return
+    
+    user_id = str(update.message.from_user.id)
+    private_link = context.args[0]
+
+    payload = {"private_link": private_link, "user_id": user_id}
+    response = requests.post(f"{API_BASE_URL}/store_link", json=payload)
+
+    data = response.json()
+    if data["success"]:
+        await update.message.reply_text(f"✅ Your encrypted link: {data['short_link']}")
+    else:
+        await update.message.reply_text(f"❌ Error: {data['message']}")
+
+# ✅ Command (Admin Only): Subscribe a User
+async def subscribe(update: Update, context: CallbackContext):
+    if str(update.message.from_user.id) not in ADMINS:
+        await update.message.reply_text("❌ You are not authorized to use this command.")
         return
 
-    private_link = context.args[0]
-    response = requests.post(f"{RAILWAY_APP_URL}/store_link", json={"private_link": private_link})
-    result = response.json()
+    if len(context.args) < 2:
+        await update.message.reply_text("⚠️ Usage: /subscribe <user_id> <days>")
+        return
 
-    if result["success"]:
-        await update.message.reply_text(f"✅ Here is your encrypted short link:\n{result['short_link']}")
+    user_id = context.args[0]
+    days = int(context.args[1])
+
+    payload = {"user_id": user_id, "days": days}
+    response = requests.post(f"{API_BASE_URL}/add_subscription", json=payload)
+
+    data = response.json()
+    await update.message.reply_text(data["message"])
+
+# ✅ Command: Check Subscription Status
+async def check_subscription(update: Update, context: CallbackContext):
+    user_id = str(update.message.from_user.id)
+
+    response = requests.get(f"{API_BASE_URL}/check_subscription?user_id={user_id}")
+    data = response.json()
+
+    if data["success"]:
+        await update.message.reply_text(f"✅ You have an active subscription until {data['expiry_date']}")
     else:
-        await update.message.reply_text("❌ Failed to generate short link.")
+        await update.message.reply_text("❌ You do not have an active subscription.")
 
-# ✅ Main Function
+# ✅ Command (Admin Only): List All Subscribers
+async def list_subscriptions(update: Update, context: CallbackContext):
+    if str(update.message.from_user.id) not in ADMINS:
+        await update.message.reply_text("❌ You are not authorized to use this command.")
+        return
+
+    await update.message.reply_text("⚠️ Listing all subscribers is not implemented yet.")
+
+# ✅ Register Handlers
+app.add_handler(CommandHandler("start", start))
+app.add_handler(CommandHandler("generate", generate))
+app.add_handler(CommandHandler("subscribe", subscribe))
+app.add_handler(CommandHandler("checksub", check_subscription))
+app.add_handler(CommandHandler("listsubs", list_subscriptions))
+
+# ✅ Start the Bot
 async def run_bot():
-    app = Application.builder().token(BOT1_TOKEN).build()
-    app.add_handler(CommandHandler("generate", generate_link))
-
     print("🚀 Bot 1 is running...")
-    await app.initialize()
-    await app.start()
-    await app.updater.start_polling()
-
-    while True:
-        await asyncio.sleep(100)
+    await app.run_polling()
 
 if __name__ == "__main__":
+    import asyncio
     asyncio.run(run_bot())
