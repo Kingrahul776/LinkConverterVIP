@@ -8,8 +8,8 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ✅ Bot Token
-BOT1_TOKEN = "YOUR_BOT1_TOKEN_HERE"  # Replace with your actual Bot Token
+# ✅ Bot Token (Replace with your actual Bot 1 Token)
+BOT1_TOKEN = "7918764165:AAFvrPEPc2jEIjy5wTf6S-EZNKq7ol1zZiU"
 
 # ✅ Initialize bot application
 app = Application.builder().token(BOT1_TOKEN).build()
@@ -23,7 +23,6 @@ async def handle_message(update: Update, context: CallbackContext):
     user_message = update.message.text
     if "t.me/+" in user_message:
         await update.message.reply_text("✅ Link received! Generating your short link...")
-        # Simulate link generation (replace with your API call)
         short_link = f"https://kingcryptocalls.com/short/{hash(user_message) % 100000}"
         await update.message.reply_text(f"🔗 Your short link: {short_link}")
     else:
@@ -33,8 +32,8 @@ async def handle_message(update: Update, context: CallbackContext):
 app.add_handler(CommandHandler("start", start))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-# ✅ Fix for Event Loop Issue
-async def main():
+# ✅ Fix for Railway Event Loop Issues
+async def run_bot():
     logger.info("🚀 Bot 1 is running...")
     await app.run_polling()
 
@@ -43,8 +42,8 @@ if __name__ == "__main__":
         loop = asyncio.get_event_loop()
         if loop.is_running():
             logger.warning("⚠️ Event loop already running. Using alternative start method.")
-            loop.create_task(main())  # Non-blocking start
+            asyncio.create_task(run_bot())  # ✅ Non-blocking execution
         else:
-            loop.run_until_complete(main())  # Standard start
+            loop.run_until_complete(run_bot())  # ✅ Standard execution
     except RuntimeError:
-        asyncio.run(main())  # Fallback method
+        asyncio.run(run_bot())  # ✅ Fallback execution
