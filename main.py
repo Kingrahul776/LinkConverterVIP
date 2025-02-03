@@ -3,10 +3,10 @@ import requests
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 
-# ✅ Bot Token (Set in Railway Environment Variables)
-BOT1_TOKEN = os.getenv("BOT1_TOKEN")
+# ✅ Directly Hardcoded Token (Use this only if environment variables don't work)
+BOT1_TOKEN = "7563489228:AAFbHt27pZxUZVa3e3il0G7YypthgnREWkg"
 
-# ✅ Flask API URL (Your Deployed API)
+# ✅ Flask API URL
 API_BASE_URL = "https://kingcryptocalls.com"
 
 # ✅ List of Admins (Your Telegram ID)
