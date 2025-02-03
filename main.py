@@ -93,9 +93,8 @@ if __name__ == "__main__":
     print("🚀 Bot 1 is initializing...")
 
     try:
-        asyncio.run(run_bot())  # ✅ This properly starts the bot
-    except RuntimeError:
-        print("⚠️ Event loop already running. Using alternative method.")
         loop = asyncio.get_event_loop()
-        loop.create_task(run_bot())  # ✅ Keeps bot running
-        loop.run_forever()
+        loop.create_task(run_bot())  # ✅ Start the bot without blocking the loop
+        loop.run_forever()  # ✅ Keep the bot running
+    except RuntimeError as e:
+        print(f"⚠️ Error: {e}")
