@@ -2,7 +2,7 @@ import os
 import asyncio
 import requests
 from telegram import Update
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
+from telegram.ext import Application, CommandHandler, CallbackContext, filters
 
 # ✅ Hardcoded Telegram Bot Token (Replace with your actual token)
 BOT1_TOKEN = "7563489228:AAFbHt27pZxUZVa3e3il0G7YypthgnREWkg"
@@ -90,15 +90,14 @@ async def run_bot():
     await app.run_polling()
 
 if __name__ == "__main__":
+    print("🚀 Bot 1 is initializing...")
+
+    # ✅ Fix for "Event loop is already running" issue
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
 
-    try:
-        loop.run_until_complete(run_bot())
-    except RuntimeError:
-        print("⚠️ Event loop already running. Using alternative method.")
-        asyncio.ensure_future(run_bot())
-        loop.run_forever()
+    loop.create_task(run_bot())  # Prevents the loop from closing
+    loop.run_forever()  # Keeps the bot running
