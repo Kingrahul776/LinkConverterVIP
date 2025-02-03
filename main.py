@@ -66,18 +66,12 @@ async def run_bot():
     await app.run_polling()
 
 if __name__ == "__main__":
-    logger.info("🔄 Initializing event loop...")
+    logger.info("🔄 Initializing bot...")
 
     try:
-        loop = asyncio.get_event_loop()
+        asyncio.get_running_loop()
+        logger.warning("⚠️ Event loop already running. Starting bot using `asyncio.create_task()`")
+        asyncio.create_task(run_bot())  # ✅ Non-blocking execution
     except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-
-    # ✅ Run the bot in the event loop safely
-    loop.create_task(run_bot())
-
-    try:
-        loop.run_forever()  # ✅ Keeps bot running without conflicts
-    except KeyboardInterrupt:
-        logger.info("🛑 Bot stopped by user.")
+        logger.info("✅ No running event loop detected. Running bot normally.")
+        asyncio.run(run_bot())  # ✅ Standard execution
