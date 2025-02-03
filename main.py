@@ -92,12 +92,10 @@ async def run_bot():
 if __name__ == "__main__":
     print("🚀 Bot 1 is initializing...")
 
-    # ✅ Fix for "Event loop is already running" issue
     try:
-        loop = asyncio.get_running_loop()
+        asyncio.run(run_bot())  # ✅ This properly starts the bot
     except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-
-    loop.create_task(run_bot())  # Prevents the loop from closing
-    loop.run_forever()  # Keeps the bot running
+        print("⚠️ Event loop already running. Using alternative method.")
+        loop = asyncio.get_event_loop()
+        loop.create_task(run_bot())  # ✅ Keeps bot running
+        loop.run_forever()
