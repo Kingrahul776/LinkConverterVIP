@@ -18,6 +18,15 @@ API_URL = "https://kingcryptocalls.com/store_link"
 # ✅ Initialize bot application
 app = Application.builder().token(BOT1_TOKEN).build()
 
+# ✅ Function to ensure only one bot instance is running
+async def stop_other_instances():
+    try:
+        logger.info("🛑 Stopping previous bot instances...")
+        async with app.bot:
+            await app.bot.delete_webhook()
+    except Exception as e:
+        logger.warning(f"⚠️ Failed to stop other instances: {e}")
+
 # ✅ Start Command
 async def start(update: Update, context: CallbackContext):
     await update.message.reply_text("Hello! Send me a private Telegram link, and I'll generate a secure short link for you.")
@@ -61,6 +70,11 @@ app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 # ✅ Run bot safely in Railway without event loop issues
 async def run_bot():
     logger.info("🚀 Bot 1 is running...")
+
+    # ✅ Ensure only one bot instance runs
+    await stop_other_instances()
+
+    # ✅ Start polling
     await app.run_polling()
 
 if __name__ == "__main__":
