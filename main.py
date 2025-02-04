@@ -2,8 +2,12 @@ import os
 import logging
 import requests
 import asyncio
+import nest_asyncio  # ✅ Fixes event loop errors!
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
+
+# ✅ Apply fix for "RuntimeError: Event loop is already running"
+nest_asyncio.apply()
 
 # ✅ Configure Logging
 logging.basicConfig(level=logging.INFO)
@@ -64,7 +68,7 @@ async def handle_message(update: Update, context: CallbackContext):
 app.add_handler(CommandHandler("start", start))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-# ✅ Run Bot with Safe Event Loop Handling
+# ✅ Run Bot with Proper Event Loop Handling
 async def run_bot():
     logger.info("🚀 Bot 1 is starting...")
     await delete_webhook()  # Ensure webhook is removed before starting polling
@@ -72,10 +76,5 @@ async def run_bot():
     await app.run_polling()
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(run_bot())
-    except RuntimeError as e:
-        logger.warning("⚠️ Event loop already running. Switching to alternative method.")
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(run_bot())
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(run_bot())  # ✅ No more event loop issues!
