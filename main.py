@@ -64,7 +64,7 @@ async def handle_message(update: Update, context: CallbackContext):
 app.add_handler(CommandHandler("start", start))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-# ✅ Run Bot
+# ✅ Run Bot with Safe Event Loop Handling
 async def run_bot():
     logger.info("🚀 Bot 1 is starting...")
     await delete_webhook()  # Ensure webhook is removed before starting polling
@@ -74,8 +74,8 @@ async def run_bot():
 if __name__ == "__main__":
     try:
         asyncio.run(run_bot())
-    except RuntimeError:
-        logger.warning("⚠️ Event loop already running. Using alternative method.")
-        loop = asyncio.get_event_loop()
-        loop.create_task(run_bot())
-        loop.run_forever()
+    except RuntimeError as e:
+        logger.warning("⚠️ Event loop already running. Switching to alternative method.")
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(run_bot())
