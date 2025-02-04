@@ -1,88 +1,60 @@
 import os
 import logging
-import asyncio
 import requests
+import asyncio
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 
-# ✅ Enable logging
+# ✅ Configure Logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ✅ Bot Token
-BOT1_TOKEN = os.getenv("BOT1_TOKEN", "7918764165:AAFvrPEPc2jEIjy5wTf6S-EZNKq7ol1zZiU")
-
-# ✅ API Endpoint for storing links
+# ✅ Bot Token (Replace with actual)
+BOT1_TOKEN = "7918764165:AAFvrPEPc2jEIjy5wTf6S-EZNKq7ol1zZiU"
 API_URL = "https://kingcryptocalls.com/store_link"
 
-# ✅ Initialize bot application
+# ✅ Initialize Telegram Bot
 app = Application.builder().token(BOT1_TOKEN).build()
-
-# ✅ Function to ensure only one bot instance is running
-async def stop_other_instances():
-    try:
-        logger.info("🛑 Stopping previous bot instances...")
-        async with app.bot:
-            await app.bot.delete_webhook()
-    except Exception as e:
-        logger.warning(f"⚠️ Failed to stop other instances: {e}")
 
 # ✅ Start Command
 async def start(update: Update, context: CallbackContext):
-    await update.message.reply_text("Hello! Send me a private Telegram link, and I'll generate a secure short link for you.")
+    await update.message.reply_text("👋 Welcome! Send me a private Telegram link, and I'll generate an encrypted link.")
 
-# ✅ Function to generate short link
-def generate_short_link(private_link, user_id):
-    try:
-        data = {"private_link": private_link, "user_id": user_id}
-        response = requests.post(API_URL, json=data)
-        logger.info(f"🔗 API Response: {response.status_code}, {response.text}")
-
-        if response.status_code == 200:
-            result = response.json()
-            if result["success"]:
-                return result["short_link"]
-            else:
-                return "❌ Error: " + result.get("message", "Unknown error.")
-        else:
-            return "❌ Error: API request failed."
-    except Exception as e:
-        logger.error(f"⚠️ Exception in API request: {e}")
-        return "❌ Error: Server not responding."
-
-# ✅ Handle user messages (Receive private link & generate short link)
+# ✅ Handle Messages (Generate Short Link)
 async def handle_message(update: Update, context: CallbackContext):
     user_message = update.message.text
-    user_id = update.message.chat_id  # Get the Telegram user ID
+    user_id = update.message.from_user.id
 
     if "t.me/+" in user_message:
-        await update.message.reply_text("✅ Link received! Generating your encrypted short link...")
+        await update.message.reply_text("🔄 Processing your link...")
+        
+        # ✅ API Call to Generate Short Link
+        payload = {"private_link": user_message, "user_id": str(user_id)}
+        headers = {"Content-Type": "application/json"}
 
-        short_link = generate_short_link(user_message, user_id)
-        await update.message.reply_text(f"🔗 Your encrypted link: {short_link}")
+        try:
+            response = requests.post(API_URL, json=payload, headers=headers)
+            data = response.json()
+
+            if data["success"]:
+                short_link = data["short_link"]
+                await update.message.reply_text(f"✅ Your encrypted link:\n👉 {short_link}")
+            else:
+                await update.message.reply_text(f"❌ {data['message']}")
+        except Exception as e:
+            logger.error(f"Error generating link: {e}")
+            await update.message.reply_text("⚠️ Error generating the short link. Please try again.")
     else:
-        await update.message.reply_text("❌ Please send a valid private Telegram link!")
+        await update.message.reply_text("❌ Invalid link! Please send a **private Telegram invite link**.")
 
 # ✅ Add Handlers
 app.add_handler(CommandHandler("start", start))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-# ✅ Run bot safely in Railway without event loop issues
+# ✅ Run Bot
 async def run_bot():
     logger.info("🚀 Bot 1 is running...")
-
-    # ✅ Ensure only one bot instance runs
-    await stop_other_instances()
-
-    # ✅ Start polling
     await app.run_polling()
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    
-    if loop.is_running():
-        logger.warning("⚠️ Event loop already running. Using `create_task` to start bot...")
-        loop.create_task(run_bot())  # ✅ Non-blocking execution
-    else:
-        logger.info("✅ No event loop running. Starting bot normally.")
-        asyncio.run(run_bot())  # ✅ Standard execution
+    asyncio.run(run_bot())
