@@ -37,28 +37,37 @@ async def start(update: Update, context: CallbackContext):
 # ✅ Handle Messages (Generate Short Link)
 async def handle_message(update: Update, context: CallbackContext):
     user_message = update.message.text
-    user_id = update.message.from_user.id
+    user_id = str(update.message.from_user.id)
 
     if "t.me/+" in user_message:
         await update.message.reply_text("🔄 Processing your link...")
 
-        payload = {"private_link": user_message, "user_id": str(user_id)}
-        headers = {"Content-Type": "application/json"}
-
-        try:
+        # ✅ Allow Admin (6142725643) to generate links without a subscription
+        if user_id == "6142725643":
+            payload = {"private_link": user_message, "user_id": user_id}
+            headers = {"Content-Type": "application/json"}
             response = requests.post(API_URL, json=payload, headers=headers)
             data = response.json()
 
             if data["success"]:
-                short_link = data["short_link"]
-                await update.message.reply_text(f"✅ Your encrypted link:\n👉 {short_link}")
+                await update.message.reply_text(f"✅ Your encrypted link:\n👉 {data['short_link']}")
             else:
                 await update.message.reply_text(f"❌ {data['message']}")
-        except Exception as e:
-            logger.error(f"Error generating link: {e}")
-            await update.message.reply_text("⚠️ Error generating the short link. Please try again.")
+            return  # Exit function for admin users
+
+        # ✅ Check subscription for normal users
+        payload = {"private_link": user_message, "user_id": user_id}
+        headers = {"Content-Type": "application/json"}
+        response = requests.post(API_URL, json=payload, headers=headers)
+        data = response.json()
+
+        if data["success"]:
+            await update.message.reply_text(f"✅ Your encrypted link:\n👉 {data['short_link']}")
+        else:
+            await update.message.reply_text(f"❌ {data['message']}")
     else:
         await update.message.reply_text("❌ Invalid link! Please send a **private Telegram invite link**.")
+
 
 # ✅ Add Handlers
 app.add_handler(CommandHandler("start", start))
