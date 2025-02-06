@@ -2,20 +2,20 @@ import os
 import logging
 import requests
 import asyncio
-import nest_asyncio
+import nest_asyncio  # ✅ Fixes event loop errors!
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 
-# ✅ Apply fix for event loop issues
+# ✅ Apply fix for "RuntimeError: Event loop is already running"
 nest_asyncio.apply()
 
 # ✅ Configure Logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# ✅ Bot Token
+# ✅ Bot Token (Replace with actual)
 BOT1_TOKEN = "7918764165:AAFvrPEPc2jEIjy5wTf6S-EZNKq7ol1zZiU"
-API_URL = "https://kingcryptocalls.com/store_link"
+API_URL = "https://web-production-8fdb0.up.railway.app/store_link"
 
 # ✅ Initialize Telegram Bot
 app = Application.builder().token(BOT1_TOKEN).build()
@@ -44,7 +44,7 @@ async def handle_message(update: Update, context: CallbackContext):
 
     if "t.me/+" in user_message:
         await update.message.reply_text("🔄 Processing your link...")
-        
+
         # ✅ API Call to Generate Short Link
         payload = {"private_link": user_message, "user_id": str(user_id)}
         headers = {"Content-Type": "application/json"}
@@ -53,11 +53,14 @@ async def handle_message(update: Update, context: CallbackContext):
             response = requests.post(API_URL, json=payload, headers=headers)
             data = response.json()
 
-            if data["success"]:
-                short_link = data["short_link"]
+            # ✅ Log API Response for debugging
+            logger.info(f"API Response: {data}")
+
+            if data.get("success"):
+                short_link = data.get("short_link")
                 await update.message.reply_text(f"✅ Your encrypted link:\n👉 {short_link}")
             else:
-                await update.message.reply_text(f"❌ {data['message']}")
+                await update.message.reply_text(f"❌ {data.get('message')}")
         except Exception as e:
             logger.error(f"Error generating link: {e}")
             await update.message.reply_text("⚠️ Error generating the short link. Please try again.")
@@ -76,5 +79,15 @@ async def run_bot():
     await app.run_polling()
 
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(run_bot())  # ✅ No more event loop issues!
+    try:
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            logger.warning("⚠️ Event loop already running. Running bot in a new task.")
+            loop.create_task(run_bot())
+        else:
+            loop.run_until_complete(run_bot())
+    except RuntimeError as e:
+        if "no running event loop" in str(e):
+            asyncio.run(run_bot())
+        else:
+            logger.error(f"❌ Unexpected error: {e}")
