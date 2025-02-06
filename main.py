@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # ✅ Bot Token
-BOT1_TOKEN = "YOUR_BOT1_TOKEN"
+BOT1_TOKEN = "7918764165:AAFvrPEPc2jEIjy5wTf6S-EZNKq7ol1zZiU"
 API_URL = "https://kingcryptocalls.com/store_link"
 
 # ✅ Initialize Telegram Bot
